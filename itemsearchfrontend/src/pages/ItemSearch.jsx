@@ -12,15 +12,22 @@ import {
 } from 'react-bootstrap';
 import dayjs from 'dayjs';
 
-import { searchItem } from '../utils/api'; // Your API helper
-import { getSession } from '../utils/session'; // Get logged-in user session
- // Make sure file name matches exactly
+import { searchItem } from '../utils/api';
 import Header from '../componenets/Header';
 import QRScanner from '../componenets/QrScanner';
 
+// 🔁 Hardcoded storeName → locCode map
+const storeToLocCode = {
+  'SUITOR GUY KOTTAYAM': '9',
+  'ZORUCCI EDAPPALLY': '144',
+  'SUITORGUY TRIVANDRUM': '700',
+  'ZORUCCI KOOTAYAM': '101',
+
+};
+
 const ItemSearch = () => {
-  const session = getSession();
-  const locationId = session?.locCode || '';
+  const storeName = localStorage.getItem('storeName');
+  const locationId = storeToLocCode[storeName] || '';
 
   const [itemCode, setItemCode] = useState('');
   const [results, setResults] = useState([]);
@@ -29,7 +36,6 @@ const ItemSearch = () => {
   const [error, setError] = useState('');
   const [showQR, setShowQR] = useState(false);
 
-  // Search API call, accepts item code (default from input)
   const handleSearch = async (code = itemCode) => {
     if (!code.trim()) {
       setError('Please enter or scan a valid item code.');
@@ -59,18 +65,17 @@ const ItemSearch = () => {
     }
   };
 
-  // Called when QR scanner scans a code
   const handleQRResult = async (scannedCode) => {
     setShowQR(false);
     setItemCode(scannedCode);
     setError('');
-    setResults([]); // Clear visible results
+    setResults([]);
 
     try {
       const response = await searchItem(scannedCode, locationId);
 
       if (response.data?.dataSet?.data?.length > 0) {
-        setScannedResults(response.data.dataSet.data); // Store scanned results silently
+        setScannedResults(response.data.dataSet.data);
       } else {
         setScannedResults([]);
         setError('No matching records found for scanned code.');
@@ -81,7 +86,6 @@ const ItemSearch = () => {
     }
   };
 
-  // On user clicking Search button, show either scannedResults or search by manual input
   const onSearchButtonClick = () => {
     if (scannedResults.length > 0) {
       setResults(scannedResults);
@@ -119,11 +123,7 @@ const ItemSearch = () => {
                     </Form.Group>
                   </Col>
 
-                  <Col
-                    xs={6}
-                    md={2}
-                    className="d-flex flex-column align-items-center"
-                  >
+                  <Col xs={6} md={2} className="d-flex flex-column align-items-center">
                     <Button
                       variant="outline-success"
                       onClick={() => setShowQR(true)}
@@ -132,7 +132,6 @@ const ItemSearch = () => {
                     >
                       <i className="fa-solid fa-qrcode me-2"></i> Scan QR
                     </Button>
-                    
                   </Col>
 
                   <Col xs={6} md={2}>
@@ -159,12 +158,7 @@ const ItemSearch = () => {
 
                 {results.length > 0 && (
                   <div className="mt-4 table-responsive">
-                    <Table
-                      bordered
-                      hover
-                      className="text-center align-middle"
-                      responsive
-                    >
+                    <Table bordered hover className="text-center align-middle" responsive>
                       <thead className="table-success">
                         <tr>
                           <th>#</th>

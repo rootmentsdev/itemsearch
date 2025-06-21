@@ -1,17 +1,39 @@
 const axios = require('axios');
 
 const loginEmployee = async (req, res) => {
-  const { employeeId, email } = req.body;
+  const { employeeId, password } = req.body;
+
+  console.log('📥 Received from frontend:', req.body);
 
   try {
     const response = await axios.post(
-      'https://script.google.com/macros/s/AKfycbxbG3Zrp8cuGmVMUtH3MB5JIOulR2nZ7dc81d67toYJNIupxuxjtdJAPGYmTgWs9dLT/exec',
-      { employeeId, email }
+      'https://rootments.in/api/verify_employee',
+      { employeeId, password },
+      {
+        headers: {
+          Authorization: 'Bearer RootX-production-9d17d9485eb772e79df8564004d4a4d4',
+        },
+      }
     );
 
-    res.json(response.data); // Return to frontend
+    console.log('✅ API Response:', response.data);
+    res.json(response.data);
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Login failed' });
+    console.error('❌ Login error:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+
+    res.status(500).json({
+      status: 'error',
+      message: 'Login failed.',
+      debug: {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      },
+    });
   }
 };
 
