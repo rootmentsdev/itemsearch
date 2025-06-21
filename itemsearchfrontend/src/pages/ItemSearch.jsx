@@ -12,15 +12,48 @@ import {
 } from 'react-bootstrap';
 import dayjs from 'dayjs';
 
-import { searchItem } from '../utils/api'; // Your API helper
-import { getSession } from '../utils/session'; // Get logged-in user session
- // Make sure file name matches exactly
+import { searchItem } from '../utils/api';
 import Header from '../componenets/Header';
 import QRScanner from '../componenets/QrScanner';
 
 const ItemSearch = () => {
-  const session = getSession();
-  const locationId = session?.locCode || '';
+
+  // Normalizes input to match keys in storeToLocCode
+  const normalizeStoreName = (input) => {
+    return input
+      ?.toUpperCase()
+      .replace(/\s+/g, '')
+      .replace(/[^A-Z]/g, '')
+      .trim();
+  };
+
+  const storeToLocCode = {
+    'ZORUCCIEDAPPALLY': 1,
+    'WAREHOUSE': 2,
+    'SUITORGUYEDAPPALLY': 3,
+    'HEADOFFICE': 4,
+    'SUITORGUYTRIVANDRUM': 5,
+    'ZORUCCIEDAPPAL': 6,
+    'ZORUCCIPERINTHALMANNA': 7,
+    'ZORUCCIKOTTAKKAL': 8,
+    'SUITORGUYKOTTAYAM': 9,
+    'SUITORGUYPERUMBAVOOR': 10,
+    'SUITORGUYTHRISSUR': 11,
+    'SUITORGUYCHAVAKKAD': 12,
+    'SUITORGUYCALICUT': 13,
+    'SUITORGUYVADAKARA': 14,
+    'SUITORGUYEDAPPAL': 15,
+    'SUITORGUYPERINTHALMANNA': 16,
+    'SUITORGUYKOTTAKKAL': 17,
+    'SUITORGUYMANJERI': 18,
+    'SUITORGUYPALAKKAD': 19,
+    'SUITORGUYKALPETTA': 20,
+    'SUITORGUYKANNUR': 21,
+  };
+
+  const storeName = localStorage.getItem('storeName') || '';
+  const normalizedStore = normalizeStoreName(storeName);
+  const locationId = storeToLocCode[normalizedStore] || '';
 
   const [itemCode, setItemCode] = useState('');
   const [results, setResults] = useState([]);
@@ -29,7 +62,6 @@ const ItemSearch = () => {
   const [error, setError] = useState('');
   const [showQR, setShowQR] = useState(false);
 
-  // Search API call, accepts item code (default from input)
   const handleSearch = async (code = itemCode) => {
     if (!code.trim()) {
       setError('Please enter or scan a valid item code.');
@@ -41,36 +73,39 @@ const ItemSearch = () => {
     setLoading(true);
     setResults([]);
 
+    const cleanItemCode = code.trim();
+
+    console.log('🔍 Store:', storeName);
+    console.log('📌 Mapped locCode:', locationId);
+    console.log('🔎 Searching itemCode:', cleanItemCode);
+
     try {
-      const res = await searchItem(code.trim(), locationId);
+      const res = await searchItem(cleanItemCode, locationId);
       const data = res.data?.dataSet?.data || [];
 
       if (data.length > 0) {
         setResults(data);
       } else {
         setError('No records found for the scanned item in your location.');
-        setResults([]);
       }
     } catch (err) {
+      console.error('❌ Item search error:', err);
       setError('Failed to fetch item data. Please try again.');
-      setResults([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Called when QR scanner scans a code
   const handleQRResult = async (scannedCode) => {
     setShowQR(false);
     setItemCode(scannedCode);
     setError('');
-    setResults([]); // Clear visible results
+    setResults([]);
 
     try {
       const response = await searchItem(scannedCode, locationId);
-
       if (response.data?.dataSet?.data?.length > 0) {
-        setScannedResults(response.data.dataSet.data); // Store scanned results silently
+        setScannedResults(response.data.dataSet.data);
       } else {
         setScannedResults([]);
         setError('No matching records found for scanned code.');
@@ -81,7 +116,6 @@ const ItemSearch = () => {
     }
   };
 
-  // On user clicking Search button, show either scannedResults or search by manual input
   const onSearchButtonClick = () => {
     if (scannedResults.length > 0) {
       setResults(scannedResults);
@@ -119,11 +153,7 @@ const ItemSearch = () => {
                     </Form.Group>
                   </Col>
 
-                  <Col
-                    xs={6}
-                    md={2}
-                    className="d-flex flex-column align-items-center"
-                  >
+                  <Col xs={6} md={2}>
                     <Button
                       variant="outline-success"
                       onClick={() => setShowQR(true)}
@@ -132,7 +162,6 @@ const ItemSearch = () => {
                     >
                       <i className="fa-solid fa-qrcode me-2"></i> Scan QR
                     </Button>
-                    
                   </Col>
 
                   <Col xs={6} md={2}>
@@ -142,11 +171,7 @@ const ItemSearch = () => {
                       className="w-100"
                       disabled={loading || !itemCode.trim()}
                     >
-                      {loading ? (
-                        <Spinner size="sm" animation="border" />
-                      ) : (
-                        'Search'
-                      )}
+                      {loading ? <Spinner size="sm" animation="border" /> : 'Search'}
                     </Button>
                   </Col>
                 </Form>
@@ -159,12 +184,7 @@ const ItemSearch = () => {
 
                 {results.length > 0 && (
                   <div className="mt-4 table-responsive">
-                    <Table
-                      bordered
-                      hover
-                      className="text-center align-middle"
-                      responsive
-                    >
+                    <Table bordered hover className="text-center align-middle" responsive>
                       <thead className="table-success">
                         <tr>
                           <th>#</th>
