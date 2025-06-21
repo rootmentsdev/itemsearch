@@ -1,21 +1,25 @@
 import axios from 'axios';
 
-const BASE_URL = 'https://rootments-itemsearch-web.onrender.com/api'; // your backend base URL (still used for login)
+const BASE_URL = 'http://localhost:5000/api/auth'; // or your deployed URL
 
-// 🔐 Employee Login API (through your backend)
-export const loginEmployee = (employeeId, email) => {
-  return axios.post(`${BASE_URL}/auth/login`, {
+export const loginEmployee = async ({ employeeId, password }) => {
+  const res = await axios.post(`${BASE_URL}/login`, {
     employeeId,
-    email
+    password
   });
+  return res.data;
 };
 
 
 
 
-export const searchItem = (itemCode, locationId) => {
-  return axios.get('https://rentalapi.rootments.live/api/ItemSearch/GetItemSearch', {
-    params: { itemCode, locationId },
+
+
+
+export const searchItem = (itemCode, locCode) => {
+  return axios.post(`${BASE_URL}/search-item`, {
+    itemCode,
+    locCode
   });
 };
 
