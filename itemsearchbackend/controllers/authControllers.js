@@ -1,3 +1,5 @@
+
+// ✅ backend/api/loginEmployee.js
 const axios = require('axios');
 
 const loginEmployee = async (req, res) => {
@@ -38,3 +40,4 @@ const loginEmployee = async (req, res) => {
 };
 
 module.exports = { loginEmployee };
+
