@@ -234,7 +234,7 @@ import {
   Card,
 } from 'react-bootstrap';
 import dayjs from 'dayjs';
-import { searchItem } from '../utils/api';
+import { searchItem, searchItemWithFallback } from '../utils/api';
 import Header from '../componenets/Header';
 import QRScanner from '../componenets/QrScanner';
 
@@ -285,6 +285,7 @@ const ItemSearch = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showQR, setShowQR] = useState(false);
+  const [apiUsed, setApiUsed] = useState('');
 
   // Pass itemCode as locCode to match API expectation
   const handleSearch = async (code = itemCode) => {
@@ -299,16 +300,30 @@ const ItemSearch = () => {
     setResults([]);
 
     try {
-      const res = await searchItem(code.trim(), locationId);
+      console.log('🔍 Searching for item:', code.trim());
+      console.log('📍 Using locationId:', locationId);
+      console.log('🌐 Using fallback search function...');
+      
+      const res = await searchItemWithFallback(code.trim(), locationId);
+      console.log('📡 Full API response:', res);
+      console.log('📊 Response data:', res.data);
+      console.log('🚀 API Used:', res.data?.apiUsed);
+      console.log('📋 Expected data path:', res.data?.dataSet?.data);
+      
       const data = res.data?.dataSet?.data || [];
 
       if (data.length > 0) {
         setResults(data);
+        setApiUsed(res.data?.apiUsed || '');
+        console.log('✅ Found results using', res.data?.apiUsed, ':', data);
       } else {
         setError('No records found for the scanned item in your location.');
         setResults([]);
+        setApiUsed('');
+        console.log('❌ No results found from both APIs');
       }
     } catch (err) {
+      console.error('💥 API Error:', err);
       setError('Failed to fetch item data. Please try again.');
       setResults([]);
     } finally {
@@ -324,15 +339,24 @@ const ItemSearch = () => {
     setResults([]);
 
     try {
-      const response = await searchItem(scannedCode, locationId);
+      console.log('📱 QR Code scanned:', scannedCode);
+      console.log('📍 Using locationId:', locationId);
+      
+      const response = await searchItemWithFallback(scannedCode, locationId);
+      console.log('🚀 QR Search API Used:', response.data?.apiUsed);
 
       if (response.data?.dataSet?.data?.length > 0) {
         setScannedResults(response.data.dataSet.data);
+        setApiUsed(response.data?.apiUsed || '');
+        console.log('✅ QR results found using', response.data?.apiUsed, ':', response.data.dataSet.data);
       } else {
         setScannedResults([]);
+        setApiUsed('');
         setError('No matching records found for scanned code.');
+        console.log('❌ No QR results found from both APIs');
       }
     } catch (err) {
+      console.error('💥 QR API Error:', err);
       setError('Failed to fetch data for scanned code.');
       setScannedResults([]);
     }
@@ -410,7 +434,7 @@ const ItemSearch = () => {
 
                 {results.length > 0 && (
                   <div className="mt-4 table-responsive">
-                    <Table bordered hover className="text-center align-middle" responsive>
+                      <Table bordered hover className="text-center align-middle" responsive>
                       <thead className="table-success">
                         <tr>
                           <th>#</th>
@@ -420,6 +444,12 @@ const ItemSearch = () => {
                           <th>Description</th>
                           <th>Customer Name</th>
                           <th>Phone No</th>
+                          <th>Item Code</th>
+                          <th>Item Name</th>
+                          <th>Count</th>
+                          <th>Price</th>
+                          <th>Location</th>
+                          <th>Category</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -444,6 +474,12 @@ const ItemSearch = () => {
                             <td>{item.description || '-'}</td>
                             <td>{item.customerName || '-'}</td>
                             <td>{item.phoneNo || '-'}</td>
+                            <td>{item.itemcode || '-'}</td>
+                            <td>{item.itemName || '-'}</td>
+                            <td>{item.itemCount || '-'}</td>
+                            <td>{item.price || '-'}</td>
+                            <td>{item.location || '-'}</td>
+                            <td>{item.category || '-'}</td>
                           </tr>
                         ))}
                       </tbody>
