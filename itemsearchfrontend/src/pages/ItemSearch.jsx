@@ -433,57 +433,130 @@ const ItemSearch = () => {
                 )}
 
                 {results.length > 0 && (
-                  <div className="mt-4 table-responsive">
-                      <Table bordered hover className="text-center align-middle" responsive>
-                      <thead className="table-success">
-                        <tr>
-                          <th>#</th>
-                          <th>Delivery Date</th>
-                          <th>Booking Date</th>
-                          <th>Return Date</th>
-                          <th>Description</th>
-                          <th>Customer Name</th>
-                          <th>Phone No</th>
-                          <th>Item Code</th>
-                          <th>Item Name</th>
-                          <th>Count</th>
-                          <th>Price</th>
-                          <th>Location</th>
-                          <th>Category</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {results.map((item, index) => (
-                          <tr key={index}>
-                            <td>{index + 1}</td>
-                            <td>
-                              {item.deliveryDate
-                                ? dayjs(item.deliveryDate).format('D/MMM/YYYY')
-                                : '-'}
-                            </td>
-                            <td>
-                              {item.bookingDate
-                                ? dayjs(item.bookingDate).format('D/MMM/YYYY')
-                                : '-'}
-                            </td>
-                            <td>
-                              {item.returnDate
-                                ? dayjs(item.returnDate).format('D/MMM/YYYY')
-                                : '-'}
-                            </td>
-                            <td>{item.description || '-'}</td>
-                            <td>{item.customerName || '-'}</td>
-                            <td>{item.phoneNo || '-'}</td>
-                            <td>{item.itemcode || '-'}</td>
-                            <td>{item.itemName || '-'}</td>
-                            <td>{item.itemCount || '-'}</td>
-                            <td>{item.price || '-'}</td>
-                            <td>{item.location || '-'}</td>
-                            <td>{item.category || '-'}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </Table>
+                  <div className="mt-4">
+                    {/* Check if any booking data exists */}
+                    {results.some(item => 
+                      item.deliveryDate || item.bookingDate || item.returnDate || 
+                      (item.customerName && item.customerName !== '-') || 
+                      (item.phoneNo && item.phoneNo !== '-')
+                    ) ? (
+                      // Show normal table if booking data exists
+                      <div className="table-responsive">
+                        <Table bordered hover className="text-center align-middle" responsive>
+                          <thead className="table-success">
+                            <tr>
+                              <th>#</th>
+                              <th>Delivery Date</th>
+                              <th>Booking Date</th>
+                              <th>Return Date</th>
+                              <th>Description</th>
+                              <th>Customer Name</th>
+                              <th>Phone No</th>
+                              <th>Item Code</th>
+                              <th>Item Name</th>
+                              <th>Count</th>
+                              <th>Price</th>
+                              <th>Location</th>
+                              <th>Category</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {results.map((item, index) => (
+                              <tr key={index}>
+                                <td>{index + 1}</td>
+                                <td>
+                                  {item.deliveryDate
+                                    ? dayjs(item.deliveryDate).format('D/MMM/YYYY')
+                                    : '-'}
+                                </td>
+                                <td>
+                                  {item.bookingDate
+                                    ? dayjs(item.bookingDate).format('D/MMM/YYYY')
+                                    : '-'}
+                                </td>
+                                <td>
+                                  {item.returnDate
+                                    ? dayjs(item.returnDate).format('D/MMM/YYYY')
+                                    : '-'}
+                                </td>
+                                <td>{item.description || '-'}</td>
+                                <td>{item.customerName || '-'}</td>
+                                <td>{item.phoneNo || '-'}</td>
+                                <td>{item.itemcode || '-'}</td>
+                                <td>{item.itemName || '-'}</td>
+                                <td>{item.itemCount || '-'}</td>
+                                <td>{item.price || '-'}</td>
+                                <td>{item.location || '-'}</td>
+                                <td>{item.category || '-'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </Table>
+                      </div>
+                    ) : (
+                      // Show "No Booking Available" message if no booking data
+                      <div className="mb-4">
+                        <Alert variant="danger" className="text-center border-0 shadow-sm">
+                          <div className="d-flex flex-column align-items-center">
+                            <i className="fa-solid fa-calendar-xmark text-danger mb-2" style={{ fontSize: '2.5rem' }}></i>
+                            <h5 className="text-danger fw-bold mb-2">No Booking Available For This Product</h5>
+                            <p className="text-muted mb-0">This item is currently available and has not been booked by any customer.</p>
+                          </div>
+                        </Alert>
+                        <div className="table-responsive">
+                          <Table bordered hover className="text-center align-middle" responsive>
+                            <thead className="table-success">
+                              <tr>
+                                <th>#</th>
+                                <th>Delivery Date</th>
+                                <th>Booking Date</th>
+                                <th>Return Date</th>
+                                <th>Description</th>
+                                <th>Customer Name</th>
+                                <th>Phone No</th>
+                                <th>Item Code</th>
+                                <th>Item Name</th>
+                                <th>Count</th>
+                                <th>Price</th>
+                                <th>Location</th>
+                                <th>Category</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {results.map((item, index) => (
+                                <tr key={index}>
+                                  <td>{index + 1}</td>
+                                  <td>
+                                    {item.deliveryDate
+                                      ? dayjs(item.deliveryDate).format('D/MMM/YYYY')
+                                      : '-'}
+                                  </td>
+                                  <td>
+                                    {item.bookingDate
+                                      ? dayjs(item.bookingDate).format('D/MMM/YYYY')
+                                      : '-'}
+                                  </td>
+                                  <td>
+                                    {item.returnDate
+                                      ? dayjs(item.returnDate).format('D/MMM/YYYY')
+                                      : '-'}
+                                  </td>
+                                  <td>{item.description || '-'}</td>
+                                  <td>{item.customerName || '-'}</td>
+                                  <td>{item.phoneNo || '-'}</td>
+                                  <td>{item.itemcode || '-'}</td>
+                                  <td>{item.itemName || '-'}</td>
+                                  <td>{item.itemCount || '-'}</td>
+                                  <td>{item.price || '-'}</td>
+                                  <td>{item.location || '-'}</td>
+                                  <td>{item.category || '-'}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </Table>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </Card.Body>
