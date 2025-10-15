@@ -641,12 +641,12 @@ const ItemSearch = () => {
                     ) : (
                       // Show "No Booking Available" message if no booking data
                       <div className="mb-4">
-                        <Alert variant="danger" className="text-center border-0 shadow-sm" style={{ borderRadius: '16px' }}>
+                        <Alert variant="success" className="text-center border-0 shadow-sm" style={{ borderRadius: '16px' }}>
                           <div className="d-flex flex-column align-items-center">
                             <div className="mb-3" style={{
                               width: '60px',
                               height: '60px',
-                              background: 'linear-gradient(135deg, #dc3545, #e74c3c)',
+                              background: 'linear-gradient(135deg, #28a745, #20c997)',
                               borderRadius: '50%',
                               display: 'flex',
                               alignItems: 'center',
@@ -654,10 +654,10 @@ const ItemSearch = () => {
                               color: 'white',
                               fontSize: '1.5rem'
                             }}>
-                              <i className="fa-solid fa-calendar-xmark"></i>
+                              <i className="fa-solid fa-check-circle"></i>
                             </div>
-                            <h5 className="text-danger fw-bold mb-2">No Booking Available For This Product</h5>
-                            <p className="text-muted mb-0">This item is currently available and has not been booked by any customer.</p>
+                            <h5 className="text-success fw-bold mb-2">Product is Available for booking</h5>
+                            <p className="text-muted mb-0">This item is currently available and ready to be booked by customers.</p>
                           </div>
                         </Alert>
                         <div>
