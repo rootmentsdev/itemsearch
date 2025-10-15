@@ -377,58 +377,102 @@ const ItemSearch = () => {
   return (
     <>
       <Header />
-      <Container fluid className="py-5 bg-light min-vh-100">
+      <div className="min-vh-100" style={{ 
+        background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+        paddingTop: '2rem',
+        paddingBottom: '2rem'
+      }}>
+        <Container>
         <Row className="justify-content-center">
-          <Col xs={11} md={10} lg={8}>
-            <Card className="shadow-lg rounded-4 border-0">
-              <Card.Body className="p-4">
-                <h3 className="text-center mb-4 text-success fw-bold">
-                  Item Search Portal
-                </h3>
+            <Col xs={12} lg={10} xl={8}>
+              <Card className="border-0 shadow-lg" style={{ 
+                borderRadius: '20px',
+                overflow: 'hidden'
+              }}>
+                <Card.Body className="p-5">
+                  <div className="text-center mb-5">
+                    <div className="d-inline-flex align-items-center justify-content-center mb-3" style={{
+                      width: '80px',
+                      height: '80px',
+                      background: 'linear-gradient(135deg, #28a745, #20c997)',
+                      borderRadius: '50%',
+                      color: 'white',
+                      fontSize: '2rem'
+                    }}>
+                      <i className="fa-solid fa-search"></i>
+                    </div>
+                    <h2 className="text-success fw-bold mb-2">Item Search Portal</h2>
+                    <p className="text-muted mb-0">Find and track item availability across locations</p>
+                  </div>
 
+                  <div className="bg-light p-4 rounded-4 mb-4">
                 <Form className="row g-3 align-items-end">
                   <Col xs={12} md={8}>
                     <Form.Group controlId="itemCodeInput">
-                      <Form.Label>Item Code</Form.Label>
+                          <Form.Label className="fw-semibold text-dark mb-2">
+                            <i className="fa-solid fa-barcode me-2 text-success"></i>Item Code
+                          </Form.Label>
                       <Form.Control
                         type="text"
-                        placeholder="Enter Item Code"
+                            placeholder="Enter item code (e.g., 2PNP0325T347A93KF)"
                         value={itemCode}
                         onChange={(e) => setItemCode(e.target.value)}
+                            className="border-2 border-success-subtle"
+                            style={{ 
+                              borderRadius: '12px',
+                              padding: '12px 16px',
+                              fontSize: '1rem'
+                            }}
                       />
                     </Form.Group>
                   </Col>
 
-                  <Col xs={6} md={2} className="d-flex flex-column align-items-center">
+                      <Col xs={6} md={2}>
                     <Button
                       variant="outline-success"
                       onClick={() => setShowQR(true)}
-                      className="w-100 d-flex justify-content-center align-items-center"
-                      title="Scan QR"
-                    >
-                      <i className="fa-solid fa-qrcode me-2"></i> Scan QR
+                          className="w-100 d-flex justify-content-center align-items-center py-3"
+                          title="Scan QR Code"
+                          style={{ 
+                            borderRadius: '12px',
+                            borderWidth: '2px',
+                            fontWeight: '500'
+                          }}
+                        >
+                          <i className="fa-solid fa-qrcode me-2"></i> 
+                          <span className="d-none d-sm-inline">Scan QR</span>
                     </Button>
                   </Col>
 
                   <Col xs={6} md={2}>
                     <Button
-                      variant="outline-success"
+                          variant="success"
                       onClick={onSearchButtonClick}
-                      className="w-100"
+                          className="w-100 d-flex justify-content-center align-items-center py-3"
                       disabled={loading || !itemCode.trim()}
+                          style={{ 
+                            borderRadius: '12px',
+                            fontWeight: '500',
+                            background: loading ? '#6c757d' : undefined
+                          }}
                     >
                       {loading ? (
-                        <Spinner size="sm" animation="border" />
+                            <Spinner size="sm" className="me-2" />
                       ) : (
-                        'Search'
+                            <i className="fa-solid fa-search me-2"></i>
                       )}
+                          <span className="d-none d-sm-inline">Search</span>
                     </Button>
                   </Col>
                 </Form>
+                  </div>
 
                 {error && (
-                  <Alert variant="danger" className="mt-3">
-                    {error}
+                    <Alert variant="danger" className="mt-3 border-0 shadow-sm" style={{ borderRadius: '12px' }}>
+                      <div className="d-flex align-items-center">
+                        <i className="fa-solid fa-exclamation-triangle me-3"></i>
+                        <span className="fw-medium">{error}</span>
+                      </div>
                   </Alert>
                 )}
 
@@ -441,119 +485,294 @@ const ItemSearch = () => {
                       (item.phoneNo && item.phoneNo !== '-')
                     ) ? (
                       // Show normal table if booking data exists
-                      <div className="table-responsive">
-                        <Table bordered hover className="text-center align-middle" responsive>
-                          <thead className="table-success">
-                            <tr>
-                              <th>#</th>
-                              <th>Delivery Date</th>
-                              <th>Booking Date</th>
-                              <th>Return Date</th>
-                              <th>Description</th>
-                              <th>Customer Name</th>
-                              <th>Phone No</th>
-                              <th>Item Code</th>
-                              <th>Item Name</th>
-                              <th>Count</th>
-                              <th>Price</th>
-                              <th>Location</th>
-                              <th>Category</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {results.map((item, index) => (
-                              <tr key={index}>
-                                <td>{index + 1}</td>
-                                <td>
-                                  {item.deliveryDate
-                                    ? dayjs(item.deliveryDate).format('D/MMM/YYYY')
-                                    : '-'}
-                                </td>
-                                <td>
-                                  {item.bookingDate
-                                    ? dayjs(item.bookingDate).format('D/MMM/YYYY')
-                                    : '-'}
-                                </td>
-                                <td>
-                                  {item.returnDate
-                                    ? dayjs(item.returnDate).format('D/MMM/YYYY')
-                                    : '-'}
-                                </td>
-                                <td>{item.description || '-'}</td>
-                                <td>{item.customerName || '-'}</td>
-                                <td>{item.phoneNo || '-'}</td>
-                                <td>{item.itemcode || '-'}</td>
-                                <td>{item.itemName || '-'}</td>
-                                <td>{item.itemCount || '-'}</td>
-                                <td>{item.price || '-'}</td>
-                                <td>{item.location || '-'}</td>
-                                <td>{item.category || '-'}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </Table>
-                      </div>
-                    ) : (
-                      // Show "No Booking Available" message if no booking data
-                      <div className="mb-4">
-                        <Alert variant="danger" className="text-center border-0 shadow-sm">
-                          <div className="d-flex flex-column align-items-center">
-                            <i className="fa-solid fa-calendar-xmark text-danger mb-2" style={{ fontSize: '2.5rem' }}></i>
-                            <h5 className="text-danger fw-bold mb-2">No Booking Available For This Product</h5>
-                            <p className="text-muted mb-0">This item is currently available and has not been booked by any customer.</p>
-                          </div>
-                        </Alert>
-                        <div className="table-responsive">
-                          <Table bordered hover className="text-center align-middle" responsive>
-                            <thead className="table-success">
+                      <div>
+                        {/* Desktop Table */}
+                        <div className="d-none d-lg-block table-responsive shadow-sm" style={{ borderRadius: '12px', overflow: 'hidden' }}>
+                          <Table className="text-center align-middle mb-0" bordered>
+                            <thead style={{ 
+                              background: 'linear-gradient(135deg, #28a745, #20c997)',
+                              color: 'white'
+                            }}>
                               <tr>
-                                <th>#</th>
-                                <th>Delivery Date</th>
-                                <th>Booking Date</th>
-                                <th>Return Date</th>
-                                <th>Description</th>
-                                <th>Customer Name</th>
-                                <th>Phone No</th>
-                                <th>Item Code</th>
-                                <th>Item Name</th>
-                                <th>Count</th>
-                                <th>Price</th>
-                                <th>Location</th>
-                                <th>Category</th>
+                                <th className="py-3 px-2 fw-semibold">#</th>
+                                <th className="py-3 px-2 fw-semibold">Delivery Date</th>
+                                <th className="py-3 px-2 fw-semibold">Booking Date</th>
+                                <th className="py-3 px-2 fw-semibold">Return Date</th>
+                                <th className="py-3 px-2 fw-semibold">Description</th>
+                                <th className="py-3 px-2 fw-semibold">Customer Name</th>
+                                <th className="py-3 px-2 fw-semibold">Phone No</th>
+                                <th className="py-3 px-2 fw-semibold">Item Code</th>
+                                <th className="py-3 px-2 fw-semibold">Item Name</th>
+                                <th className="py-3 px-2 fw-semibold">Count</th>
+                                <th className="py-3 px-2 fw-semibold">Price</th>
+                                <th className="py-3 px-2 fw-semibold">Location</th>
+                                <th className="py-3 px-2 fw-semibold">Category</th>
                               </tr>
                             </thead>
                             <tbody>
                               {results.map((item, index) => (
-                                <tr key={index}>
-                                  <td>{index + 1}</td>
-                                  <td>
+                                <tr key={index} style={{ 
+                                  backgroundColor: index % 2 === 0 ? '#f8f9fa' : 'white',
+                                  transition: 'all 0.2s ease'
+                                }} 
+                                className="hover-row">
+                                  <td className="py-3 px-2 fw-medium text-success">{index + 1}</td>
+                                  <td className="py-3 px-2">
                                     {item.deliveryDate
                                       ? dayjs(item.deliveryDate).format('D/MMM/YYYY')
-                                      : '-'}
+                                      : <span className="text-muted">-</span>}
                                   </td>
-                                  <td>
+                                  <td className="py-3 px-2">
                                     {item.bookingDate
                                       ? dayjs(item.bookingDate).format('D/MMM/YYYY')
-                                      : '-'}
+                                      : <span className="text-muted">-</span>}
                                   </td>
-                                  <td>
+                                  <td className="py-3 px-2">
                                     {item.returnDate
                                       ? dayjs(item.returnDate).format('D/MMM/YYYY')
-                                      : '-'}
+                                      : <span className="text-muted">-</span>}
                                   </td>
-                                  <td>{item.description || '-'}</td>
-                                  <td>{item.customerName || '-'}</td>
-                                  <td>{item.phoneNo || '-'}</td>
-                                  <td>{item.itemcode || '-'}</td>
-                                  <td>{item.itemName || '-'}</td>
-                                  <td>{item.itemCount || '-'}</td>
-                                  <td>{item.price || '-'}</td>
-                                  <td>{item.location || '-'}</td>
-                                  <td>{item.category || '-'}</td>
+                                  <td className="py-3 px-2 fw-medium">{item.description || <span className="text-muted">-</span>}</td>
+                                  <td className="py-3 px-2">{item.customerName || <span className="text-muted">-</span>}</td>
+                                  <td className="py-3 px-2">{item.phoneNo || <span className="text-muted">-</span>}</td>
+                                  <td className="py-3 px-2 fw-medium text-primary">{item.itemcode || <span className="text-muted">-</span>}</td>
+                                  <td className="py-3 px-2 fw-medium">{item.itemName || <span className="text-muted">-</span>}</td>
+                                  <td className="py-3 px-2">
+                                    <span className="badge bg-success-subtle text-success px-2 py-1">
+                                      {item.itemCount || '-'}
+                                    </span>
+                                  </td>
+                                  <td className="py-3 px-2 fw-bold text-success">₹{item.price || '-'}</td>
+                                  <td className="py-3 px-2">{item.location || <span className="text-muted">-</span>}</td>
+                                  <td className="py-3 px-2">
+                                    <span className="badge bg-info-subtle text-info px-2 py-1">
+                                      {item.category || '-'}
+                                    </span>
+                                  </td>
                                 </tr>
                               ))}
                             </tbody>
                           </Table>
+                        </div>
+
+                        {/* Mobile Cards */}
+                        <div className="d-lg-none">
+                          {results.map((item, index) => (
+                            <Card key={index} className="mb-3 shadow-sm" style={{ borderRadius: '12px' }}>
+                              <Card.Body className="p-3">
+                                <div className="row g-2">
+                                  <div className="col-6">
+                                    <small className="text-muted">Item Code</small>
+                                    <div className="fw-bold text-primary">{item.itemcode || '-'}</div>
+                                  </div>
+                                  <div className="col-6">
+                                    <small className="text-muted">Price</small>
+                                    <div className="fw-bold text-success">₹{item.price || '-'}</div>
+                                  </div>
+                                  <div className="col-12">
+                                    <small className="text-muted">Description</small>
+                                    <div className="fw-medium">{item.description || '-'}</div>
+                                  </div>
+                                  <div className="col-6">
+                                    <small className="text-muted">Count</small>
+                                    <div>
+                                      <span className="badge bg-success-subtle text-success px-2 py-1">
+                                        {item.itemCount || '-'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="col-6">
+                                    <small className="text-muted">Category</small>
+                                    <div>
+                                      <span className="badge bg-info-subtle text-info px-2 py-1">
+                                        {item.category || '-'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="col-12">
+                                    <small className="text-muted">Location</small>
+                                    <div>{item.location || '-'}</div>
+                                  </div>
+                                  {(item.deliveryDate || item.bookingDate || item.returnDate || (item.customerName && item.customerName !== '-') || (item.phoneNo && item.phoneNo !== '-')) && (
+                                    <>
+                                      <div className="col-12 mt-2 pt-2 border-top">
+                                        <small className="text-muted">Booking Details</small>
+                                      </div>
+                                      <div className="col-6">
+                                        <small className="text-muted">Delivery Date</small>
+                                        <div>
+                                          {item.deliveryDate
+                                            ? dayjs(item.deliveryDate).format('D/MMM/YYYY')
+                                            : <span className="text-muted">-</span>}
+                                        </div>
+                                      </div>
+                                      <div className="col-6">
+                                        <small className="text-muted">Booking Date</small>
+                                        <div>
+                                          {item.bookingDate
+                                            ? dayjs(item.bookingDate).format('D/MMM/YYYY')
+                                            : <span className="text-muted">-</span>}
+                                        </div>
+                                      </div>
+                                      <div className="col-6">
+                                        <small className="text-muted">Return Date</small>
+                                        <div>
+                                          {item.returnDate
+                                            ? dayjs(item.returnDate).format('D/MMM/YYYY')
+                                            : <span className="text-muted">-</span>}
+                                        </div>
+                                      </div>
+                                      <div className="col-6">
+                                        <small className="text-muted">Customer Name</small>
+                                        <div>{item.customerName || <span className="text-muted">-</span>}</div>
+                                      </div>
+                                      <div className="col-12">
+                                        <small className="text-muted">Phone No</small>
+                                        <div>{item.phoneNo || <span className="text-muted">-</span>}</div>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                              </Card.Body>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      // Show "No Booking Available" message if no booking data
+                      <div className="mb-4">
+                        <Alert variant="danger" className="text-center border-0 shadow-sm" style={{ borderRadius: '16px' }}>
+                          <div className="d-flex flex-column align-items-center">
+                            <div className="mb-3" style={{
+                              width: '60px',
+                              height: '60px',
+                              background: 'linear-gradient(135deg, #dc3545, #e74c3c)',
+                              borderRadius: '50%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: 'white',
+                              fontSize: '1.5rem'
+                            }}>
+                              <i className="fa-solid fa-calendar-xmark"></i>
+                            </div>
+                            <h5 className="text-danger fw-bold mb-2">No Booking Available For This Product</h5>
+                            <p className="text-muted mb-0">This item is currently available and has not been booked by any customer.</p>
+                          </div>
+                        </Alert>
+                        <div>
+                          {/* Desktop Table */}
+                          <div className="d-none d-lg-block table-responsive shadow-sm" style={{ borderRadius: '12px', overflow: 'hidden' }}>
+                            <Table className="text-center align-middle mb-0" bordered>
+                              <thead style={{ 
+                                background: 'linear-gradient(135deg, #28a745, #20c997)',
+                                color: 'white'
+                              }}>
+                                <tr>
+                                  <th className="py-3 px-2 fw-semibold">#</th>
+                                  <th className="py-3 px-2 fw-semibold">Delivery Date</th>
+                                  <th className="py-3 px-2 fw-semibold">Booking Date</th>
+                                  <th className="py-3 px-2 fw-semibold">Return Date</th>
+                                  <th className="py-3 px-2 fw-semibold">Description</th>
+                                  <th className="py-3 px-2 fw-semibold">Customer Name</th>
+                                  <th className="py-3 px-2 fw-semibold">Phone No</th>
+                                  <th className="py-3 px-2 fw-semibold">Item Code</th>
+                                  <th className="py-3 px-2 fw-semibold">Item Name</th>
+                                  <th className="py-3 px-2 fw-semibold">Count</th>
+                                  <th className="py-3 px-2 fw-semibold">Price</th>
+                                  <th className="py-3 px-2 fw-semibold">Location</th>
+                                  <th className="py-3 px-2 fw-semibold">Category</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {results.map((item, index) => (
+                                  <tr key={index} style={{ 
+                                    backgroundColor: index % 2 === 0 ? '#f8f9fa' : 'white',
+                                    transition: 'all 0.2s ease'
+                                  }} 
+                                  className="hover-row">
+                                    <td className="py-3 px-2 fw-medium text-success">{index + 1}</td>
+                                    <td className="py-3 px-2">
+                                      {item.deliveryDate
+                                        ? dayjs(item.deliveryDate).format('D/MMM/YYYY')
+                                        : <span className="text-muted">-</span>}
+                                    </td>
+                                    <td className="py-3 px-2">
+                                      {item.bookingDate
+                                        ? dayjs(item.bookingDate).format('D/MMM/YYYY')
+                                        : <span className="text-muted">-</span>}
+                                    </td>
+                                    <td className="py-3 px-2">
+                                      {item.returnDate
+                                        ? dayjs(item.returnDate).format('D/MMM/YYYY')
+                                        : <span className="text-muted">-</span>}
+                                    </td>
+                                    <td className="py-3 px-2 fw-medium">{item.description || <span className="text-muted">-</span>}</td>
+                                    <td className="py-3 px-2">{item.customerName || <span className="text-muted">-</span>}</td>
+                                    <td className="py-3 px-2">{item.phoneNo || <span className="text-muted">-</span>}</td>
+                                    <td className="py-3 px-2 fw-medium text-primary">{item.itemcode || <span className="text-muted">-</span>}</td>
+                                    <td className="py-3 px-2 fw-medium">{item.itemName || <span className="text-muted">-</span>}</td>
+                                    <td className="py-3 px-2">
+                                      <span className="badge bg-success-subtle text-success px-2 py-1">
+                                        {item.itemCount || '-'}
+                                      </span>
+                                    </td>
+                                    <td className="py-3 px-2 fw-bold text-success">₹{item.price || '-'}</td>
+                                    <td className="py-3 px-2">{item.location || <span className="text-muted">-</span>}</td>
+                                    <td className="py-3 px-2">
+                                      <span className="badge bg-info-subtle text-info px-2 py-1">
+                                        {item.category || '-'}
+                                      </span>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </Table>
+                          </div>
+
+                          {/* Mobile Cards */}
+                          <div className="d-lg-none">
+                            {results.map((item, index) => (
+                              <Card key={index} className="mb-3 shadow-sm" style={{ borderRadius: '12px' }}>
+                                <Card.Body className="p-3">
+                                  <div className="row g-2">
+                                    <div className="col-6">
+                                      <small className="text-muted">Item Code</small>
+                                      <div className="fw-bold text-primary">{item.itemcode || '-'}</div>
+                                    </div>
+                                    <div className="col-6">
+                                      <small className="text-muted">Price</small>
+                                      <div className="fw-bold text-success">₹{item.price || '-'}</div>
+                                    </div>
+                                    <div className="col-12">
+                                      <small className="text-muted">Description</small>
+                                      <div className="fw-medium">{item.description || '-'}</div>
+                                    </div>
+                                    <div className="col-6">
+                                      <small className="text-muted">Count</small>
+                                      <div>
+                                        <span className="badge bg-success-subtle text-success px-2 py-1">
+                                          {item.itemCount || '-'}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="col-6">
+                                      <small className="text-muted">Category</small>
+                                      <div>
+                                        <span className="badge bg-info-subtle text-info px-2 py-1">
+                                          {item.category || '-'}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="col-12">
+                                      <small className="text-muted">Location</small>
+                                      <div>{item.location || '-'}</div>
+                                    </div>
+                                  </div>
+                                </Card.Body>
+                              </Card>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     )}
@@ -563,6 +782,33 @@ const ItemSearch = () => {
             </Card>
           </Col>
         </Row>
+        </Container>
+      </div>
+
+      {/* Custom CSS for hover effects */}
+      <style jsx>{`
+        .hover-row:hover {
+          background-color: #e8f5e8 !important;
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .table-responsive {
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .card {
+          transition: all 0.3s ease;
+        }
+        .card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+        }
+      `}</style>
 
         {showQR && (
           <QRScanner
@@ -571,7 +817,6 @@ const ItemSearch = () => {
             onClose={() => setShowQR(false)}
           />
         )}
-      </Container>
     </>
   );
 };
