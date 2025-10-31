@@ -260,6 +260,7 @@ const storeToLocCode = {
   'SUITOR GUY TRIVANDRUM': '5',
   'SUITOR GUY CALICUT': '13',
   'SUITOR GUY KOZIKODE': '13',
+  'SUITOR GUY MG ROAD': '23',
 
 };
 
