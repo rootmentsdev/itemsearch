@@ -10,6 +10,11 @@ export const loginEmployee = (employeeId, password) => {
   });
 };
 
+// 📊 Save Scan Activity API
+export const saveScanActivity = (scanData) => {
+  return axios.post(`${BASE_URL}/scan-activity`, scanData);
+};
+
 
 
 
