@@ -26,8 +26,16 @@ const allowedOrigins = [
 // ✅ CORS middleware
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // Allow Postman, curl
-    if (allowedOrigins.includes(origin)) return callback(null, true);
+    console.log(`🌐 CORS check for origin: ${origin}`);
+    if (!origin) {
+      console.log('✅ Allowing request with no origin (Postman, curl)');
+      return callback(null, true);
+    }
+    if (allowedOrigins.includes(origin)) {
+      console.log(`✅ CORS allowed for: ${origin}`);
+      return callback(null, true);
+    }
+    console.error(`❌ CORS blocked for: ${origin}`);
     return callback(new Error(`CORS blocked for: ${origin}`), false);
   },
   credentials: true
@@ -38,7 +46,7 @@ app.use(express.json());
 
 // ✅ Log request origins (optional for debugging)
 app.use((req, res, next) => {
-  console.log(`Incoming request from: ${req.headers.origin || 'no origin'}`);
+  console.log(`📥 ${req.method} ${req.path} from: ${req.headers.origin || 'no origin'}`);
   next();
 });
 
@@ -53,7 +61,16 @@ app.get('/', (req, res) => {
   res.send('✅ Backend is working!');
 });
 
+// ✅ Global error handler
+app.use((err, req, res, next) => {
+  console.error('❌ Server error:', err);
+  res.status(err.status || 500).json({
+    status: 'error',
+    message: err.message || 'Internal server error'
+  });
+});
+
 // ✅ Start server
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
