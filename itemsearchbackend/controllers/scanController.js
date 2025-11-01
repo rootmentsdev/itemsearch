@@ -40,15 +40,25 @@ const saveScanActivity = async (req, res) => {
       employeeId,
       employeeName,
       scannedCode,
-      hasEmployeeId: !!employeeId
+      hasEmployeeId: !!employeeId,
+      employeeIdType: typeof employeeId,
+      employeeIdValue: JSON.stringify(employeeId)
     });
 
     // Strict validation - reject if employeeId is missing, undefined, null, or literal "undefined"
     if (!employeeId || employeeId === 'undefined' || employeeId === 'null' || !scannedCode) {
-      console.warn('⚠️ Invalid scan activity data:', { employeeId, scannedCode });
+      console.warn('⚠️ Invalid scan activity data:', { 
+        employeeId, 
+        scannedCode,
+        reason: !employeeId ? 'no employeeId' : 
+                employeeId === 'undefined' ? 'literal undefined' :
+                employeeId === 'null' ? 'literal null' :
+                !scannedCode ? 'no scannedCode' : 'unknown'
+      });
       return res.status(400).json({
         status: 'error',
-        message: 'Employee ID and scanned code are required'
+        message: 'Employee ID and scanned code are required',
+        debug: { employeeId, scannedCode }
       });
     }
 
@@ -115,9 +125,15 @@ const saveScanActivity = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Error saving scan activity:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
     res.status(500).json({
       status: 'error',
-      message: 'Failed to save scan activity'
+      message: 'Failed to save scan activity',
+      error: error.message
     });
   }
 };

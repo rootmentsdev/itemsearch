@@ -295,32 +295,44 @@ const ItemSearch = () => {
       const employeeName = localStorage.getItem('employeeName');
       const storeName = localStorage.getItem('storeName');
       
+      // Validate employeeId is actually valid (not "undefined", "null", empty, etc.)
+      const isValidEmployeeId = employeeId && 
+                                 employeeId !== 'undefined' && 
+                                 employeeId !== 'null' && 
+                                 employeeId.trim() !== '';
+      
       console.log('📊 Tracking scan activity:', {
         employeeId,
         employeeName,
         storeName,
         code,
-        scanType
+        scanType,
+        isValidEmployeeId
       });
       
-      if (employeeId && employeeId !== 'undefined' && code) {
-        await saveScanActivity({
-          employeeId,
-          employeeName,
-          storeName,
-          locationId,
-          scannedCode: code,
-          searchMethod: scanType, // 'manual', 'qr_code', 'barcode', etc.
-          scanSuccess: success,
-          error: error,
-          scanDuration: duration
-        });
-        console.log('✅ Scan activity tracked successfully');
+      if (isValidEmployeeId && code) {
+        try {
+          await saveScanActivity({
+            employeeId,
+            employeeName,
+            storeName,
+            locationId,
+            scannedCode: code,
+            searchMethod: scanType, // 'manual', 'qr_code', 'barcode', etc.
+            scanSuccess: success,
+            error: error,
+            scanDuration: duration
+          });
+          console.log('✅ Scan activity tracked successfully');
+        } catch (saveErr) {
+          console.error('⚠️ Failed to save scan activity:', saveErr.response?.data || saveErr.message);
+          // Don't fail the whole search if tracking fails
+        }
       } else {
-        console.warn('⚠️ Skipping tracking - missing employeeId or code:', {
+        console.warn('⚠️ Skipping tracking - invalid employeeId or code:', {
           employeeId,
           code: !!code,
-          hasEmployeeId: !!employeeId
+          isValidEmployeeId
         });
       }
     } catch (err) {
