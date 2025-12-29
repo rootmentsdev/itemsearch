@@ -49,18 +49,6 @@ app.use(cors({
 // ✅ Parse JSON request body
 app.use(express.json());
 
-// ✅ Handle OPTIONS requests explicitly (preflight)
-app.options('*', cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('CORS blocked'), false);
-    }
-  },
-  credentials: true
-}));
-
 // ✅ Log request origins (optional for debugging)
 app.use((req, res, next) => {
   console.log(`📥 ${req.method} ${req.path} from: ${req.headers.origin || 'no origin'}`);
