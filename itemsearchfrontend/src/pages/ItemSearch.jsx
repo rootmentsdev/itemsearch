@@ -401,7 +401,9 @@ const ItemSearch = () => {
     setShowQR(false);
     setItemCode(scannedCode);
     setError('');
-    setResults([]);
+    setResults([]); // Clear previous results immediately
+    setScannedResults([]); // Clear previous scanned results immediately
+    setLoading(true); // Show loading state
     const startTime = Date.now();
 
     try {
@@ -414,14 +416,18 @@ const ItemSearch = () => {
       const duration = Date.now() - startTime;
 
       if (response.data?.dataSet?.data?.length > 0) {
-        setScannedResults(response.data.dataSet.data);
+        const data = response.data.dataSet.data;
+        // Update both scannedResults and results immediately
+        setScannedResults(data);
+        setResults(data); // Directly update results so table shows immediately
         setApiUsed(response.data?.apiUsed || '');
-        console.log('✅ QR results found using', response.data?.apiUsed, ':', response.data.dataSet.data);
+        console.log('✅ QR results found using', response.data?.apiUsed, ':', data);
         
         // Track successful scan (both QR and barcode detection is automatic)
         trackScanActivity(scannedCode, 'qr_code', true, null, duration);
       } else {
         setScannedResults([]);
+        setResults([]); // Ensure results is also cleared
         setApiUsed('');
         setError('No matching records found for scanned code.');
         console.log('❌ No QR results found from both APIs');
@@ -433,9 +439,12 @@ const ItemSearch = () => {
       console.error('💥 QR API Error:', err);
       setError('Failed to fetch data for scanned code.');
       setScannedResults([]);
+      setResults([]); // Ensure results is also cleared on error
       
       // Track error
       trackScanActivity(scannedCode, 'qr_code', false, err.message, Date.now() - startTime);
+    } finally {
+      setLoading(false); // Hide loading state
     }
   };
 
