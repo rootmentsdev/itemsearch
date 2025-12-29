@@ -38,11 +38,28 @@ app.use(cors({
     console.error(`❌ CORS blocked for: ${origin}`);
     return callback(new Error(`CORS blocked for: ${origin}`), false);
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Type', 'Authorization'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
 
 // ✅ Parse JSON request body
 app.use(express.json());
+
+// ✅ Handle OPTIONS requests explicitly (preflight)
+app.options('*', cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS blocked'), false);
+    }
+  },
+  credentials: true
+}));
 
 // ✅ Log request origins (optional for debugging)
 app.use((req, res, next) => {
@@ -64,6 +81,20 @@ app.get('/', (req, res) => {
 // ✅ Global error handler
 app.use((err, req, res, next) => {
   console.error('❌ Server error:', err);
+  
+  // Handle CORS errors specially
+  if (err.message && err.message.includes('CORS')) {
+    const origin = req.headers.origin;
+    if (origin && allowedOrigins.includes(origin)) {
+      res.header('Access-Control-Allow-Origin', origin);
+      res.header('Access-Control-Allow-Credentials', 'true');
+    }
+    return res.status(403).json({
+      status: 'error',
+      message: err.message || 'CORS policy violation'
+    });
+  }
+  
   res.status(err.status || 500).json({
     status: 'error',
     message: err.message || 'Internal server error'
