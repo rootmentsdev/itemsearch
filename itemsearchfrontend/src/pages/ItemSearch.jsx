@@ -221,7 +221,7 @@
 // export default ItemSearch;
 
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import {
   Container,
   Row,
@@ -265,16 +265,15 @@ const storeToLocCode = {
 };
 
 const ItemSearch = () => {
-  // Normalize storeName for robust lookup
-  const rawStoreName = localStorage.getItem('storeName') || '';
-  const storeName = rawStoreName.trim().toUpperCase();
-  // Find matching key in storeToLocCode (case-insensitive)
-  const locationId = Object.keys(storeToLocCode).find(
-    key => key.toUpperCase() === storeName
-  ) ? storeToLocCode[
-    Object.keys(storeToLocCode).find(key => key.toUpperCase() === storeName)
-  ] : '';
-
+  // 🚀 Performance: Cache locationId computation using useMemo
+  const locationId = useMemo(() => {
+    const rawStoreName = localStorage.getItem('storeName') || '';
+    const storeName = rawStoreName.trim().toUpperCase();
+    const foundKey = Object.keys(storeToLocCode).find(
+      key => key.toUpperCase() === storeName
+    );
+    return foundKey ? storeToLocCode[foundKey] : '';
+  }, []); // Only compute once on mount
 
   const [itemCode, setItemCode] = useState('');
   const [results, setResults] = useState([]);
@@ -283,6 +282,9 @@ const ItemSearch = () => {
   const [error, setError] = useState('');
   const [showQR, setShowQR] = useState(false);
   const [apiUsed, setApiUsed] = useState('');
+  
+  // 🚀 Performance: Debounce timer ref
+  const debounceTimerRef = useRef(null);
   
   // Helper function to track scan activity (optimized - minimal logging)
   const trackScanActivity = async (code, scanType, success = true, error = null, duration = null) => {
@@ -318,9 +320,11 @@ const ItemSearch = () => {
     }
   };
 
-  // Pass itemCode as locCode to match API expectation
-  const handleSearch = async (code = itemCode, searchMethod = 'manual') => {
-    if (!code.trim()) {
+  // 🚀 Performance: Optimized search handler with useCallback
+  const handleSearch = useCallback(async (code, searchMethod = 'manual') => {
+    // Use provided code or fallback to current itemCode state
+    const searchCode = code !== undefined ? code : itemCode;
+    if (!searchCode || !searchCode.trim()) {
       setError('Please enter or scan a valid item code.');
       setResults([]);
       return;
@@ -332,7 +336,7 @@ const ItemSearch = () => {
     const startTime = Date.now();
 
     try {
-      const res = await searchItemWithFallback(code.trim(), locationId);
+      const res = await searchItemWithFallback(searchCode.trim(), locationId);
       const data = res.data?.dataSet?.data || [];
       const duration = Date.now() - startTime;
 
@@ -341,14 +345,14 @@ const ItemSearch = () => {
         setApiUsed(res.data?.apiUsed || '');
         
         // Track successful search (non-blocking - fire and forget)
-        trackScanActivity(code.trim(), searchMethod, true, null, duration);
+        trackScanActivity(searchCode.trim(), searchMethod, true, null, duration);
       } else {
         setError('No records found for the scanned item in your location.');
         setResults([]);
         setApiUsed('');
         
         // Track failed search (non-blocking - fire and forget)
-        trackScanActivity(code.trim(), searchMethod, false, 'No results found', duration);
+        trackScanActivity(searchCode.trim(), searchMethod, false, 'No results found', duration);
       }
     } catch (err) {
       console.error('API Error:', err.message);
@@ -356,11 +360,42 @@ const ItemSearch = () => {
       setResults([]);
       
       // Track error (non-blocking - fire and forget)
-      trackScanActivity(code.trim(), searchMethod, false, err.message, Date.now() - startTime);
+      trackScanActivity(searchCode.trim(), searchMethod, false, err.message, Date.now() - startTime);
     } finally {
       setLoading(false);
     }
-  };
+  }, [itemCode, locationId]); // Include itemCode for fallback when no code provided
+  
+  // 🚀 Performance: Debounced search for manual input
+  const handleInputChange = useCallback((e) => {
+    const value = e.target.value;
+    setItemCode(value);
+    
+    // Clear previous debounce timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    
+    // Only auto-search if input is long enough (at least 3 characters) and user stopped typing
+    if (value.trim().length >= 3) {
+      debounceTimerRef.current = setTimeout(() => {
+        handleSearch(value, 'manual');
+      }, 500); // 500ms debounce - wait for user to stop typing
+    } else if (value.trim().length === 0) {
+      // Clear results if input is empty
+      setResults([]);
+      setError('');
+    }
+  }, [handleSearch]);
+  
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
 
   // Pass scannedCode as locCode to match API expectation
   const handleQRResult = async (scannedCode) => {
@@ -461,12 +496,22 @@ const ItemSearch = () => {
                         type="text"
                             placeholder="Enter item code (e.g., 2PNP0325T347A93KF)"
                         value={itemCode}
-                        onChange={(e) => setItemCode(e.target.value)}
+                        onChange={handleInputChange}
                             className="border-2 border-success-subtle"
                             style={{ 
                               borderRadius: '12px',
                               padding: '12px 16px',
                               fontSize: '1rem'
+                            }}
+                            onKeyPress={(e) => {
+                              // Allow Enter key to trigger immediate search
+                              if (e.key === 'Enter' && itemCode.trim()) {
+                                e.preventDefault();
+                                if (debounceTimerRef.current) {
+                                  clearTimeout(debounceTimerRef.current);
+                                }
+                                handleSearch(itemCode, 'manual');
+                              }
                             }}
                       />
                     </Form.Group>

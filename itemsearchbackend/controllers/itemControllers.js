@@ -11,7 +11,7 @@ const searchItem = async (req, res) => {
       'https://rentalapi.rootments.live/api/ItemSearch/GetItemSearch',
       {
         params: { itemCode, locationId },
-        timeout: 10000 // 10 second timeout
+        timeout: 6000 // Reduced to 6 seconds for faster failure
       }
     );
 
