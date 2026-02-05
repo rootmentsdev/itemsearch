@@ -2,18 +2,83 @@ const axios = require('axios');
 
 // ✅ Item Search Controller
 const searchItem = async (req, res) => {
-  const { itemCode, locationId } = req.query;
+  let { itemCode, locationId } = req.query;
+
+  // Normalize itemCode - trim whitespace
+  itemCode = itemCode ? itemCode.trim() : '';
 
   console.log('🔍 Item Search Request:', { itemCode, locationId });
 
   try {
-    const response = await axios.get(
-      'https://rentalapi.rootments.live/api/ItemSearch/GetItemSearch',
-      {
-        params: { itemCode, locationId },
-        timeout: 10000 // 10 second timeout
+    // Try multiple case variations to handle case sensitivity issues
+    // Scenario: API has "Ab1SkUMnO12", scanner reads "AB1SKUMNO12"
+    const lowerCode = itemCode.toLowerCase();
+    const upperCode = itemCode.toUpperCase();
+    let response = null;
+    let hasData = false;
+    
+    // Try 1: Original case (e.g., "AB1SKUMNO12")
+    try {
+      response = await axios.get(
+        'https://rentalapi.rootments.live/api/ItemSearch/GetItemSearch',
+        {
+          params: { itemCode, locationId },
+          timeout: 10000 // 10 second timeout
+        }
+      );
+      hasData = response.data?.dataSet?.data?.length > 0;
+    } catch (err) {
+      // Continue to next variation
+    }
+    
+    // Try 2: Lowercase (e.g., "ab1skumno12")
+    if (!hasData && itemCode !== lowerCode) {
+      try {
+        const lowerResponse = await axios.get(
+          'https://rentalapi.rootments.live/api/ItemSearch/GetItemSearch',
+          {
+            params: { itemCode: lowerCode, locationId },
+            timeout: 10000
+          }
+        );
+        if (lowerResponse.data?.dataSet?.data?.length > 0) {
+          response = lowerResponse;
+          hasData = true;
+        }
+      } catch (lowerError) {
+        // Continue to next variation
       }
-    );
+    }
+    
+    // Try 3: Uppercase (e.g., "AB1SKUMNO12") - might be same as original
+    if (!hasData && itemCode !== upperCode && lowerCode !== upperCode) {
+      try {
+        const upperResponse = await axios.get(
+          'https://rentalapi.rootments.live/api/ItemSearch/GetItemSearch',
+          {
+            params: { itemCode: upperCode, locationId },
+            timeout: 10000
+          }
+        );
+        if (upperResponse.data?.dataSet?.data?.length > 0) {
+          response = upperResponse;
+          hasData = true;
+        }
+      } catch (upperError) {
+        // Continue with whatever response we have
+      }
+    }
+    
+    // If we still don't have a response, use the first one (even if empty)
+    if (!response) {
+      response = await axios.get(
+        'https://rentalapi.rootments.live/api/ItemSearch/GetItemSearch',
+        {
+          params: { itemCode, locationId },
+          timeout: 10000
+        }
+      );
+    }
 
     console.log('✅ Item Search API Response Status:', response.status);
     console.log('✅ Item Search Response Data Keys:', Object.keys(response.data || {}));

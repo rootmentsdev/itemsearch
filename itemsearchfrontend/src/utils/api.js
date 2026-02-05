@@ -51,9 +51,43 @@ export const getAllItems = (locationId, userId) => {
 // ✅ Fallback search function - tries GetItemSearch first, then GetItemReport
 export const searchItemWithFallback = async (itemCode, locationId) => {
   try {
-    // Try the original GetItemSearch API first
-    const searchResponse = await searchItem(itemCode, locationId);
-    const searchData = searchResponse.data?.dataSet?.data || [];
+    // Normalize itemCode - trim whitespace
+    const trimmedCode = itemCode.trim();
+    const lowerCode = trimmedCode.toLowerCase();
+    const upperCode = trimmedCode.toUpperCase();
+    
+    // Try multiple case variations to handle case sensitivity issues
+    // Scenario: API has "Ab1SkUMnO12", scanner reads "AB1SKUMNO12"
+    let searchResponse = null;
+    let searchData = [];
+    
+    // Try 1: Original case (e.g., "AB1SKUMNO12")
+    try {
+      searchResponse = await searchItem(trimmedCode, locationId);
+      searchData = searchResponse.data?.dataSet?.data || [];
+    } catch (err) {
+      // Continue to next variation
+    }
+    
+    // Try 2: Lowercase (e.g., "ab1skumno12")
+    if (searchData.length === 0 && trimmedCode !== lowerCode) {
+      try {
+        searchResponse = await searchItem(lowerCode, locationId);
+        searchData = searchResponse.data?.dataSet?.data || [];
+      } catch (err) {
+        // Continue to next variation
+      }
+    }
+    
+    // Try 3: Uppercase (e.g., "AB1SKUMNO12") - might be same as original
+    if (searchData.length === 0 && trimmedCode !== upperCode && lowerCode !== upperCode) {
+      try {
+        searchResponse = await searchItem(upperCode, locationId);
+        searchData = searchResponse.data?.dataSet?.data || [];
+      } catch (err) {
+        // Continue to fallback
+      }
+    }
     
     // If we found data, return it immediately
     if (searchData.length > 0) {
@@ -83,7 +117,7 @@ export const searchItemWithFallback = async (itemCode, locationId) => {
     }
     
     // Filter results by itemCode (case-insensitive, trimmed) - optimized
-    const normalizedItemCode = itemCode.trim().toLowerCase();
+    const normalizedItemCode = trimmedCode.toLowerCase();
     const filteredData = allItems.filter(item => {
       if (!item) return false;
       const itemCodeValue = (item.itemcode || item.ItemCode || '').toString().trim().toLowerCase();
@@ -132,4 +166,9 @@ export const searchItemWithFallback = async (itemCode, locationId) => {
       }
     };
   }
+};
+
+// Helper function to normalize item code for consistent searching
+export const normalizeItemCode = (itemCode) => {
+  return itemCode ? itemCode.trim() : '';
 };
